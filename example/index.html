@@ -1,0 +1,45 @@
+<html>
+
+<head>
+    <script src="../build/canvas-highlighter.js"></script>
+    <style>
+        .canvas-highlighter-rect-actived {
+            border: 1px solid yellow;
+        }
+    </style>
+</head>
+
+<body onload="addRect()">
+    <div style="position: absolute; left: 200px; top: 200px; width: 600px; height: 600px">
+        <div style="position: relative">
+            <img id="exampleImage" src="./img/exampleImage.jpg">
+        </div>
+    </div>
+    <script>
+        function addRect() {
+            var Highlighter = this['canvas-highlighter']
+            var highlighter = new Highlighter.CanvasHighlighter({
+                sourceElement: '#exampleImage', data: {
+                    left: 0, right: 0, top: 0, bottom: 0,
+                    children: [
+                        {
+                            left: 10, width: 100, top: 30, height: 200,
+                            children: [
+                                { left: 15, width: 80, top: 50, height: 80 }
+                            ]
+                        }
+                    ]
+                }
+            })
+            highlighter.on('RECT_ACTIVED', function (el) {
+                console.log('rect actived: ' + JSON.stringify(el));
+            })
+            highlighter.on('RECT_DISACTIVED', function (el) {
+                console.log('rect disactived: ' + JSON.stringify(el));
+            })
+            highlighter.render()
+        }
+    </script>
+</body>
+
+</html>

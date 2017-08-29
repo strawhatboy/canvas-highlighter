@@ -1,0 +1,11 @@
+export var name = "canvas-highlighter";
+export var version = "1.0.0";
+export var description = "to highlight something on a canvas";
+export var repository = "git@github.com:strawhatboy/canvas-highlighter.git";
+export var author = "Andy Cui <ccui@hpe.com>";
+export var license = "MIT";
+export var main = "build/canvas-highlighter.node.js";
+export var module = "index.js";
+export var browser = "build/canvas-highliter.js";
+export var devDependencies = {"babel-core":"^6.26.0","babel-preset-env":"^1.6.0","babel-preset-latest":"^6.24.1","install":"^0.10.1","json2module":"^0.0.3","npm":"^5.3.0","package-preamble":"^0.1.0","rimraf":"^2.6.1","rollup":"^0.48.2","rollup-plugin-ascii":"^0.0.3","rollup-plugin-babel":"^3.0.2","rollup-plugin-node-builtins":"^2.1.2","rollup-plugin-node-resolve":"^3.0.0","uglify-js":"^3.0.28"};
+export var scripts = {"pretest":"rimraf build && mkdir build && json2module package.json > build/package.js && node rollup.node && rollup -c --banner \"$(preamble)\" -f iife -o build/canvas-highlighter.js","prepublish":"npm run test && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" build/canvas-highlighter.js -c negate_iife=false -m -o build/canvas-highlighter.min.js"};
