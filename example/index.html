@@ -2,24 +2,35 @@
 
 <head>
     <script src="../build/canvas-highlighter.js"></script>
+    <script src="./example.js"></script>
+    <script src="./UIAExample.js"></script>
     <style>
         .canvas-highlighter-rect-actived {
-            border: 1px solid yellow;
+            border: 1px solid red;
         }
     </style>
 </head>
 
 <body onload="addRect()">
-    <div style="position: absolute; left: 200px; top: 200px; width: 600px; height: 600px">
+    <div style="position: absolute; left: 200px; top: 200px; height: 600px">
         <div style="position: relative">
-            <img id="exampleImage" src="./img/exampleImage.jpg">
+            <img id="exampleImage" width="320" height="568" src="./img/screenshot-2017-08-30-03-04-15.jpg">
         </div>
     </div>
     <script>
         function addRect() {
             var Highlighter = this['canvas-highlighter']
-            var highlighter = new Highlighter.CanvasHighlighter({
-                sourceElement: '#exampleImage', data: {
+            var exampleData = ExampleData
+            var dataToShow = [];
+            for (var i = 0; i < exampleData.length; i++) {
+                var rect = exampleData[i].boundsInScreen
+                exampleData[i].width = rect.right - rect.left
+                exampleData[i].height = rect.bottom - rect.top
+                exampleData[i].left = rect.left
+                exampleData[i].top = rect.top
+                //dataToShow.push(rect)
+            }
+            var testData = {
                     left: 0, right: 0, top: 0, bottom: 0,
                     children: [
                         {
@@ -30,6 +41,26 @@
                         }
                     ]
                 }
+
+            function handleUIAExample(root) {
+                root.left = root.rect.origin.x;
+                root.top = root.rect.origin.y;
+                root.width = root.rect.size.width;
+                root.height = root.rect.size.height;
+                if (root.type == 'UIAWindow') {
+                    root.left = root.top = root.width = root.height = 0;
+                }
+                if (root.children) {
+                    for (var i = 0; i < root.children.length; i++) {
+                        handleUIAExample(root.children[i]);
+                    }
+                }
+            }
+
+            handleUIAExample(UIAExample);
+
+            var highlighter = new Highlighter.CanvasHighlighter({
+                sourceElement: '#exampleImage', data: UIAExample, frameSize: { width:375, height:667 }
             })
             highlighter.on('RECT_ACTIVED', function (el) {
                 console.log('rect actived: ' + JSON.stringify(el));

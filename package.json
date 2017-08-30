@@ -27,5 +27,8 @@
   "scripts": {
     "pretest": "rimraf build && mkdir build && json2module package.json > build/package.js && node rollup.node && rollup -c --banner \"$(preamble)\" -f iife -o build/canvas-highlighter.js",
     "prepublish": "npm run test && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" build/canvas-highlighter.js -c negate_iife=false -m -o build/canvas-highlighter.min.js"
+  },
+  "dependencies": {
+    "lodash-es": "^4.17.4"
   }
 }

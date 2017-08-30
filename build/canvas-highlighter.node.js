@@ -2,6 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var _ = require('lodash-es/lang');
+var _extend = _interopDefault(require('lodash-es/extend'));
+
 var Consts = {
 
     ClassNames: {
@@ -511,6 +516,7 @@ var CanvasHighlighter = function (_EventEmitter) {
             _this.data = options.data;
             _this.standByClass = options.standByClass || Consts.ClassNames.RECT_STAND_BY;
             _this.activedClass = options.activedClass || Consts.ClassNames.RECT_ACTIVED;
+            _this.frameSize = options.frameSize;
         }
 
         // init
@@ -527,11 +533,17 @@ var CanvasHighlighter = function (_EventEmitter) {
     }, {
         key: '_renderRects',
         value: function _renderRects(root) {
-            // this.data should be the root element
-            this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: { width: this.mask.offsetWidth, height: this.mask.offsetHeight } });
-            if (root.children) {
-                for (var i = 0; i < root.children.length; i++) {
-                    this._renderRects(root.children[i]);
+            // this.data should be the root element or an array of elements
+            if (_.isArray(root)) {
+                for (var i = 0; i < root.length; i++) {
+                    this._renderRects(root[i]);
+                }
+            } else if (_.isObject(root)) {
+                this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: this.frameSize });
+                if (root.children) {
+                    for (var _i = 0; _i < root.children.length; _i++) {
+                        this._renderRects(root.children[_i]);
+                    }
                 }
             }
         }
@@ -543,6 +555,7 @@ var CanvasHighlighter = function (_EventEmitter) {
             mask.setAttribute('class', Consts.ClassNames.MASK);
             this.container.appendChild(mask);
             this.mask = mask;
+            this.frameSize = this.frameSize || { width: this.mask.offsetWidth, height: this.mask.offsetHeight };
         }
     }, {
         key: '_init',
@@ -571,7 +584,7 @@ var CanvasHighlighter = function (_EventEmitter) {
 
             var realRect = rect;
             if (!(layerSize.width === frameSize.width && layerSize.height === frameSize.height)) {
-                realRect = {};
+                realRect = _extend({}, rect);
                 realRect.left = rect.left == undefined ? undefined : rect.left * layerSize.width / frameSize.width;
                 realRect.right = rect.right == undefined ? undefined : rect.right * layerSize.width / frameSize.width;
                 realRect.top = rect.top == undefined ? undefined : rect.top * layerSize.height / frameSize.height;

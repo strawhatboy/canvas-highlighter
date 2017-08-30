@@ -1,5 +1,7 @@
 import { Consts } from './consts'
 import { EventEmitter } from 'events'
+import * as _ from 'lodash-es/lang'
+import _extend from 'lodash-es/extend'
 
 export class CanvasHighlighter extends EventEmitter {
 
@@ -12,6 +14,7 @@ export class CanvasHighlighter extends EventEmitter {
             this.data = options.data
             this.standByClass = options.standByClass || Consts.ClassNames.RECT_STAND_BY
             this.activedClass = options.activedClass || Consts.ClassNames.RECT_ACTIVED
+            this.frameSize = options.frameSize
         }
 
         // init
@@ -23,12 +26,32 @@ export class CanvasHighlighter extends EventEmitter {
         this._renderRects(this.data)
     }
 
+    reRender() {
+        this.clean();
+        this._init();
+        this.render();
+    }
+
+    clean() {
+        for (let i = 0; i < this.rects.length; i++) {
+            this.rects[i].remove()
+        }
+
+        this.rects = []
+    }
+
     _renderRects(root) {
-        // this.data should be the root element
-        this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: { width: this.mask.offsetWidth, height: this.mask.offsetHeight }})
-        if (root.children) {
-            for (let i = 0; i < root.children.length; i++) {
-                this._renderRects(root.children[i])
+        // this.data should be the root element or an array of elements
+        if (_.isArray(root)) {
+            for (let i = 0; i < root.length; i++) {
+                this._renderRects(root[i]);
+            }
+        } else if (_.isObject(root)) {
+            this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: this.frameSize})
+            if (root.children) {
+                for (let i = 0; i < root.children.length; i++) {
+                    this._renderRects(root.children[i])
+                }
             }
         }
     }
@@ -39,6 +62,7 @@ export class CanvasHighlighter extends EventEmitter {
         mask.setAttribute('class', Consts.ClassNames.MASK);
         this.container.appendChild(mask)
         this.mask = mask
+        this.frameSize = this.frameSize || { width: this.mask.offsetWidth, height: this.mask.offsetHeight }
     }
 
     _init() {
@@ -49,6 +73,7 @@ export class CanvasHighlighter extends EventEmitter {
         this.height = this.sourceElement.offsetHeight
 
         this.container = this.sourceElement.parentElement
+        this.rects = []
     }
 
     _createRectOnMaskLayer(options) {
@@ -61,7 +86,7 @@ export class CanvasHighlighter extends EventEmitter {
 
         let realRect = rect
         if (!(layerSize.width === frameSize.width && layerSize.height === frameSize.height)) {
-            realRect = {}
+            realRect = _extend({}, rect)
             realRect.left = rect.left == undefined ? undefined : (rect.left * layerSize.width / frameSize.width)
             realRect.right = rect.right == undefined ? undefined : (rect.right * layerSize.width / frameSize.width)
             realRect.top = rect.top == undefined ? undefined : (rect.top * layerSize.height / frameSize.height)
@@ -101,5 +126,6 @@ export class CanvasHighlighter extends EventEmitter {
         })
 
         this.container.appendChild(rectEl)
+        this.rects.push(rectEl)
     }
 }
