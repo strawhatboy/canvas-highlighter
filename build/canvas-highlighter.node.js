@@ -13,12 +13,15 @@ var Consts = {
         MASK: 'canvas-highlighter-mask',
         RECT: 'canvas-highlighter-rect',
         RECT_STAND_BY: 'canvas-highlighter-rect-stand-by',
-        RECT_ACTIVED: 'canvas-highlighter-rect-actived'
+        RECT_ACTIVED: 'canvas-highlighter-rect-actived',
+        RECT_SELECTED: 'canvas-highlighter-rect-selected'
     },
 
     Events: {
         RECT_ACTIVED: 'RECT_ACTIVED',
-        RECT_DISACTIVED: 'RECT_DISACTIVED'
+        RECT_DISACTIVED: 'RECT_DISACTIVED',
+        RECT_SELECTED: 'RECT_SELECTED',
+        RECT_UNSELECTED: 'RECT_UNSELECTED'
     }
 };
 
@@ -516,6 +519,7 @@ var CanvasHighlighter = function (_EventEmitter) {
             _this.data = options.data;
             _this.standByClass = options.standByClass || Consts.ClassNames.RECT_STAND_BY;
             _this.activedClass = options.activedClass || Consts.ClassNames.RECT_ACTIVED;
+            _this.selectedClass = options.selectedClass || Consts.ClassNames.RECT_SELECTED;
             _this.frameSize = options.frameSize;
         }
 
@@ -529,6 +533,22 @@ var CanvasHighlighter = function (_EventEmitter) {
         value: function render() {
             this._createMaskLayer();
             this._renderRects(this.data);
+        }
+    }, {
+        key: 'reRender',
+        value: function reRender() {
+            this.clean();
+            this._init();
+            this.render();
+        }
+    }, {
+        key: 'clean',
+        value: function clean() {
+            for (var i = 0; i < this.rects.length; i++) {
+                this.rects[i].remove();
+            }
+
+            this.rects = [];
         }
     }, {
         key: '_renderRects',
@@ -567,6 +587,9 @@ var CanvasHighlighter = function (_EventEmitter) {
             this.height = this.sourceElement.offsetHeight;
 
             this.container = this.sourceElement.parentElement;
+            this.rects = [];
+            this.selectedRect = {};
+            this.selectedRealRect = {};
         }
     }, {
         key: '_createRectOnMaskLayer',
@@ -612,18 +635,42 @@ var CanvasHighlighter = function (_EventEmitter) {
             if (realRect.height != undefined) {
                 styleStr += 'height:' + realRect.height + ';';
             }
+            styleStr += 'box-sizing: border-box;';
             rectEl.setAttribute('style', styleStr);
             rectEl.setAttribute('class', this.standByClass);
             rectEl.addEventListener('mouseover', function () {
-                rectEl.setAttribute('class', _this2.activedClass);
+                if (_this2.selectedRect != rectEl) {
+                    rectEl.setAttribute('class', _this2.activedClass);
+                }
                 _this2.emit(Consts.Events.RECT_ACTIVED, realRect);
             });
             rectEl.addEventListener('mouseout', function () {
-                rectEl.setAttribute('class', _this2.standByClass);
+                if (_this2.selectedRect != rectEl) {
+                    rectEl.setAttribute('class', _this2.standByClass);
+                }
                 _this2.emit(Consts.Events.RECT_DISACTIVED, realRect);
+            });
+            rectEl.addEventListener('click', function () {
+                if (_this2.selectedRect != rectEl) {
+                    if (_.isFunction(_this2.selectedRect.setAttribute)) {
+                        // unselect previous one
+                        _this2.selectedRect.setAttribute('class', _this2.standByClass);
+                        _this2.emit(Consts.Events.RECT_UNSELECTED, _this2.selectedRealRect);
+                    }
+                    _this2.selectedRect = rectEl;
+                    _this2.selectedRealRect = realRect;
+                    rectEl.setAttribute('class', _this2.selectedClass);
+                    _this2.emit(Consts.Events.RECT_SELECTED, realRect);
+                } else {
+                    // unselect it
+                    _this2.selectedRect = {};
+                    rectEl.setAttribute('class', _this2.standByClass);
+                    _this2.emit(Consts.Events.RECT_UNSELECTED, realRect);
+                }
             });
 
             this.container.appendChild(rectEl);
+            this.rects.push(rectEl);
         }
     }]);
 

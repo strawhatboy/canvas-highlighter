@@ -6,6 +6,7 @@ var fs = require("fs"),
 
 rollup.rollup({
     input: "index.js",
+    sourcemap: 'inline',
     external: dependencies ? Object.keys(dependencies) : undefined,
     plugins: [
         babel({ exclude: 'node_modules/**' }), builtins()

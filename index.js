@@ -14,6 +14,7 @@ export class CanvasHighlighter extends EventEmitter {
             this.data = options.data
             this.standByClass = options.standByClass || Consts.ClassNames.RECT_STAND_BY
             this.activedClass = options.activedClass || Consts.ClassNames.RECT_ACTIVED
+            this.selectedClass = options.selectedClass || Consts.ClassNames.RECT_SELECTED
             this.frameSize = options.frameSize
         }
 
@@ -47,7 +48,7 @@ export class CanvasHighlighter extends EventEmitter {
                 this._renderRects(root[i]);
             }
         } else if (_.isObject(root)) {
-            this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: this.frameSize})
+            this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: this.frameSize })
             if (root.children) {
                 for (let i = 0; i < root.children.length; i++) {
                     this._renderRects(root.children[i])
@@ -74,6 +75,8 @@ export class CanvasHighlighter extends EventEmitter {
 
         this.container = this.sourceElement.parentElement
         this.rects = []
+        this.selectedRect = {}
+        this.selectedRealRect = {}
     }
 
     _createRectOnMaskLayer(options) {
@@ -114,15 +117,38 @@ export class CanvasHighlighter extends EventEmitter {
         if (realRect.height != undefined) {
             styleStr += `height:${realRect.height};`
         }
+        styleStr += 'box-sizing: border-box;'
         rectEl.setAttribute('style', styleStr)
         rectEl.setAttribute('class', this.standByClass)
         rectEl.addEventListener('mouseover', () => {
-            rectEl.setAttribute('class', this.activedClass)
+            if (this.selectedRect != rectEl) {
+                rectEl.setAttribute('class', this.activedClass)
+            }
             this.emit(Consts.Events.RECT_ACTIVED, realRect)
         })
         rectEl.addEventListener('mouseout', () => {
-            rectEl.setAttribute('class', this.standByClass)
+            if (this.selectedRect != rectEl) {
+                rectEl.setAttribute('class', this.standByClass)
+            }
             this.emit(Consts.Events.RECT_DISACTIVED, realRect)
+        })
+        rectEl.addEventListener('click', () => {
+            if (this.selectedRect != rectEl) {
+                if (_.isFunction(this.selectedRect.setAttribute)) {
+                    // unselect previous one
+                    this.selectedRect.setAttribute('class', this.standByClass)
+                    this.emit(Consts.Events.RECT_UNSELECTED, this.selectedRealRect)
+                }
+                this.selectedRect = rectEl
+                this.selectedRealRect = realRect
+                rectEl.setAttribute('class', this.selectedClass)
+                this.emit(Consts.Events.RECT_SELECTED, realRect)
+            } else {
+                // unselect it
+                this.selectedRect = {}
+                rectEl.setAttribute('class', this.standByClass)
+                this.emit(Consts.Events.RECT_UNSELECTED, realRect)
+            }
         })
 
         this.container.appendChild(rectEl)

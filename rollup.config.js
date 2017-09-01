@@ -4,9 +4,12 @@ import babel from 'rollup-plugin-babel';
 import builtins from 'rollup-plugin-node-builtins';
 
 export default {
-  entry: "index",
+  input: "index",
   extend: true,
-  format: "umd",
-  moduleName: "canvas-highlighter",
+  output: {
+    format: "umd" 
+  },
+  sourcemap: 'inline',
+  name: "canvas-highlighter",
   plugins: [node(), ascii(), babel({ exclude: 'node_modules/**' }), builtins() ]
 };
