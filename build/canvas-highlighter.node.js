@@ -515,7 +515,7 @@ var CanvasHighlighter = function (_EventEmitter) {
 
         if (options) {
             _this.sourceElementSelector = options.sourceElement;
-            //this.targetElementSelector = options.targetElement
+            _this.targetElementSelector = options.targetElement;
             _this.data = options.data;
             _this.standByClass = options.standByClass || Consts.ClassNames.RECT_STAND_BY;
             _this.activedClass = options.activedClass || Consts.ClassNames.RECT_ACTIVED;
@@ -547,22 +547,31 @@ var CanvasHighlighter = function (_EventEmitter) {
             for (var i = 0; i < this.rects.length; i++) {
                 this.rects[i].remove();
             }
-
             this.rects = [];
+            this.mask.remove();
+            this.mask = undefined;
+            this.q = [];
         }
     }, {
         key: '_renderRects',
         value: function _renderRects(root) {
             // this.data should be the root element or an array of elements
+
             if (_.isArray(root)) {
                 for (var i = 0; i < root.length; i++) {
-                    this._renderRects(root[i]);
+                    this.q.push(root[i]);
                 }
             } else if (_.isObject(root)) {
-                this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: this.frameSize });
-                if (root.children) {
-                    for (var _i = 0; _i < root.children.length; _i++) {
-                        this._renderRects(root.children[_i]);
+                this.q.push(root);
+            }
+
+            while (this.q.length > 0) {
+                var top = this.q.shift();
+                this._createRectOnMaskLayer({ rect: top, layerSize: this, frameSize: this.frameSize });
+
+                if (top.children) {
+                    for (var j = 0; j < top.children.length; j++) {
+                        this.q.push(top.children[j]);
                     }
                 }
             }
@@ -581,15 +590,20 @@ var CanvasHighlighter = function (_EventEmitter) {
         key: '_init',
         value: function _init() {
             this.sourceElement = document.querySelector(this.sourceElementSelector);
-            //this.targetElement = document.querySelector(this.targetElementSelector)
+            this.targetElement = document.querySelector(this.targetElementSelector);
 
             this.width = this.sourceElement.offsetWidth;
             this.height = this.sourceElement.offsetHeight;
 
-            this.container = this.sourceElement.parentElement;
+            if (this.targetElement) {
+                this.container = this.targetElement;
+            } else {
+                this.container = this.sourceElement.parentElement;
+            }
             this.rects = [];
             this.selectedRect = {};
             this.selectedRealRect = {};
+            this.q = [];
         }
     }, {
         key: '_createRectOnMaskLayer',

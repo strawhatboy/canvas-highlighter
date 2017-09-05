@@ -16,7 +16,7 @@
 
 <body onload="addRect()">
     <div style="position: absolute; left: 200px; top: 200px; height: 600px">
-        <div style="position: relative">
+        <div style="position: relative" id="container">
             <img id="exampleImage" width="320" height="568" src="./img/screenshot-2017-08-30-03-04-15.jpg">
         </div>
     </div>
@@ -50,9 +50,9 @@
                 root.top = root.rect.origin.y;
                 root.width = root.rect.size.width;
                 root.height = root.rect.size.height;
-                if (root.type == 'UIAWindow') {
-                    root.left = root.top = root.width = root.height = 0;
-                }
+                // if (root.type == 'UIAWindow') {
+                //     root.left = root.top = root.width = root.height = 0;
+                // }
                 if (root.children) {
                     for (var i = 0; i < root.children.length; i++) {
                         handleUIAExample(root.children[i]);
@@ -63,7 +63,7 @@
             handleUIAExample(UIAExample);
 
             var highlighter = new Highlighter.CanvasHighlighter({
-                sourceElement: '#exampleImage', data: UIAExample, frameSize: { width:375, height:667 }
+                sourceElement: '#exampleImage', data: UIAExample, frameSize: { width:375, height:667 }, targetElement: '#container'
             })
             highlighter.on('RECT_ACTIVED', function (el) {
                 console.log('rect actived: ' + JSON.stringify(el));

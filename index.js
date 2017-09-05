@@ -10,7 +10,7 @@ export class CanvasHighlighter extends EventEmitter {
         // params handling
         if (options) {
             this.sourceElementSelector = options.sourceElement
-            //this.targetElementSelector = options.targetElement
+            this.targetElementSelector = options.targetElement
             this.data = options.data
             this.standByClass = options.standByClass || Consts.ClassNames.RECT_STAND_BY
             this.activedClass = options.activedClass || Consts.ClassNames.RECT_ACTIVED
@@ -37,21 +37,30 @@ export class CanvasHighlighter extends EventEmitter {
         for (let i = 0; i < this.rects.length; i++) {
             this.rects[i].remove()
         }
-
         this.rects = []
+        this.mask.remove()
+        this.mask = undefined
+        this.q = []
     }
 
     _renderRects(root) {
         // this.data should be the root element or an array of elements
+
         if (_.isArray(root)) {
             for (let i = 0; i < root.length; i++) {
-                this._renderRects(root[i]);
+                this.q.push(root[i]);
             }
         } else if (_.isObject(root)) {
-            this._createRectOnMaskLayer({ rect: root, layerSize: this, frameSize: this.frameSize })
-            if (root.children) {
-                for (let i = 0; i < root.children.length; i++) {
-                    this._renderRects(root.children[i])
+            this.q.push(root)
+        }
+
+        while (this.q.length > 0) {
+            let top = this.q.shift()
+            this._createRectOnMaskLayer({ rect: top, layerSize: this, frameSize: this.frameSize })
+
+            if (top.children) {
+                for (let j = 0; j < top.children.length; j++) {
+                    this.q.push(top.children[j])
                 }
             }
         }
@@ -68,15 +77,20 @@ export class CanvasHighlighter extends EventEmitter {
 
     _init() {
         this.sourceElement = document.querySelector(this.sourceElementSelector)
-        //this.targetElement = document.querySelector(this.targetElementSelector)
+        this.targetElement = document.querySelector(this.targetElementSelector)
 
         this.width = this.sourceElement.offsetWidth
         this.height = this.sourceElement.offsetHeight
 
-        this.container = this.sourceElement.parentElement
+        if (this.targetElement) {
+            this.container = this.targetElement
+        } else {
+            this.container = this.sourceElement.parentElement
+        }
         this.rects = []
         this.selectedRect = {}
         this.selectedRealRect = {}
+        this.q = []
     }
 
     _createRectOnMaskLayer(options) {
