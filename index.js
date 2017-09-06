@@ -16,6 +16,7 @@ export class CanvasHighlighter extends EventEmitter {
             this.activedClass = options.activedClass || Consts.ClassNames.RECT_ACTIVED
             this.selectedClass = options.selectedClass || Consts.ClassNames.RECT_SELECTED
             this.frameSize = options.frameSize
+            this.startingZIndex = options.startingZIndex || 2000
         }
 
         // init
@@ -72,21 +73,21 @@ export class CanvasHighlighter extends EventEmitter {
         mask.setAttribute('class', Consts.ClassNames.MASK);
         this.container.appendChild(mask)
         this.mask = mask
-        this.frameSize = this.frameSize || { width: this.mask.offsetWidth, height: this.mask.offsetHeight }
+        this.layerSize = this.layerSize || { width: this.mask.offsetWidth, height: this.mask.offsetHeight }
     }
 
     _init() {
         this.sourceElement = document.querySelector(this.sourceElementSelector)
         this.targetElement = document.querySelector(this.targetElementSelector)
 
-        this.width = this.sourceElement.offsetWidth
-        this.height = this.sourceElement.offsetHeight
-
         if (this.targetElement) {
             this.container = this.targetElement
         } else {
             this.container = this.sourceElement.parentElement
         }
+        
+        this.width = this.container.offsetWidth
+        this.height = this.container.offsetHeight
         this.rects = []
         this.selectedRect = {}
         this.selectedRealRect = {}
@@ -102,36 +103,37 @@ export class CanvasHighlighter extends EventEmitter {
         }
 
         let realRect = rect
-        if (!(layerSize.width === frameSize.width && layerSize.height === frameSize.height)) {
+        //if (!(layerSize.width === frameSize.width && layerSize.height === frameSize.height)) {
             realRect = _extend({}, rect)
             realRect.left = rect.left == undefined ? undefined : (rect.left * layerSize.width / frameSize.width)
             realRect.right = rect.right == undefined ? undefined : (rect.right * layerSize.width / frameSize.width)
             realRect.top = rect.top == undefined ? undefined : (rect.top * layerSize.height / frameSize.height)
             realRect.bottom = rect.bottom == undefined ? undefined : (rect.bottom * layerSize.height / frameSize.height)
             realRect.width = rect.width == undefined ? undefined : (rect.width * layerSize.width / frameSize.width)
+          
             realRect.height = rect.height == undefined ? undefined : (rect.height * layerSize.height / frameSize.height)
-        }
+        //}
         let rectEl = document.createElement('div')
         let styleStr = 'position:absolute;'
         if (realRect.left != undefined) {
-            styleStr += `left:${realRect.left};`
+            styleStr += `left:${realRect.left}px;`
         }
         if (realRect.right != undefined) {
-            styleStr += `right:${realRect.right};`
+            styleStr += `right:${realRect.right}px;`
         }
         if (realRect.top != undefined) {
-            styleStr += `top:${realRect.top};`
+            styleStr += `top:${realRect.top}px;`
         }
         if (realRect.bottom != undefined) {
-            styleStr += `bottom:${realRect.bottom};`
+            styleStr += `bottom:${realRect.bottom}px;`
         }
         if (realRect.width != undefined) {
-            styleStr += `width:${realRect.width};`
+            styleStr += `width:${realRect.width}px;`
         }
         if (realRect.height != undefined) {
-            styleStr += `height:${realRect.height};`
+            styleStr += `height:${realRect.height}px;`
         }
-        styleStr += 'box-sizing: border-box;'
+        styleStr += `box-sizing: border-box;z-index: ${this.startingZIndex++}`
         rectEl.setAttribute('style', styleStr)
         rectEl.setAttribute('class', this.standByClass)
         rectEl.addEventListener('mouseover', () => {

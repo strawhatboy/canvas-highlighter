@@ -9,7 +9,6 @@ export default {
   output: {
     format: "umd" 
   },
-  sourcemap: 'inline',
   name: "canvas-highlighter",
   plugins: [node(), ascii(), babel({ exclude: 'node_modules/**' }), builtins() ]
 };
