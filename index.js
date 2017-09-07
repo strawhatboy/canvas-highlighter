@@ -17,7 +17,8 @@ export class CanvasHighlighter extends EventEmitter {
             this.selectedClass = options.selectedClass || Consts.ClassNames.RECT_SELECTED
             this.frameSize = options.frameSize
             this.startingZIndex = options.startingZIndex || 2000
-            this.idPropertyName = options.idPropertyName || Consts.Strings.ID
+            this.idPropertyName = options.idPropertyName || Consts.PropertyNames.ID
+            this.childrenPropertyName = options.childrenPropertyName || Consts.PropertyNames.childrenPropertyName
         }
 
         // init
@@ -60,9 +61,10 @@ export class CanvasHighlighter extends EventEmitter {
             let top = this.q.shift()
             this._createRectOnMaskLayer({ rect: top, layerSize: this, frameSize: this.frameSize })
 
-            if (top.children) {
-                for (let j = 0; j < top.children.length; j++) {
-                    this.q.push(top.children[j])
+            let children = top[this.childrenPropertyName]
+            if (children) {
+                for (let j = 0; j < children.length; j++) {
+                    this.q.push(children[j])
                 }
             }
         }

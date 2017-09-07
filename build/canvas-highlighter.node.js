@@ -24,8 +24,9 @@ var Consts = {
         RECT_UNSELECTED: 'RECT_UNSELECTED'
     },
 
-    Strings: {
-        ID: 'uuid'
+    PropertyNames: {
+        ID: 'uuid',
+        childrenPropertyName: 'children'
     }
 };
 
@@ -526,7 +527,8 @@ var CanvasHighlighter = function (_EventEmitter) {
             _this.selectedClass = options.selectedClass || Consts.ClassNames.RECT_SELECTED;
             _this.frameSize = options.frameSize;
             _this.startingZIndex = options.startingZIndex || 2000;
-            _this.idPropertyName = options.idPropertyName || Consts.Strings.ID;
+            _this.idPropertyName = options.idPropertyName || Consts.PropertyNames.ID;
+            _this.childrenPropertyName = options.childrenPropertyName || Consts.PropertyNames.childrenPropertyName;
         }
 
         // init
@@ -575,9 +577,10 @@ var CanvasHighlighter = function (_EventEmitter) {
                 var top = this.q.shift();
                 this._createRectOnMaskLayer({ rect: top, layerSize: this, frameSize: this.frameSize });
 
-                if (top.children) {
-                    for (var j = 0; j < top.children.length; j++) {
-                        this.q.push(top.children[j]);
+                var children = top[this.childrenPropertyName];
+                if (children) {
+                    for (var j = 0; j < children.length; j++) {
+                        this.q.push(children[j]);
                     }
                 }
             }

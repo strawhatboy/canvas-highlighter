@@ -15,7 +15,8 @@ export let Consts = {
         RECT_UNSELECTED: 'RECT_UNSELECTED'
     },
 
-    Strings: {
-        ID: 'uuid'
+    PropertyNames: {
+        ID: 'uuid',
+        childrenPropertyName: 'children'
     }
 }

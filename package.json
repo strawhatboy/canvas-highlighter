@@ -1,6 +1,6 @@
 {
   "name": "canvas-highlighter",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "to highlight something on a canvas",
   "repository": "git@github.com:strawhatboy/canvas-highlighter.git",
   "author": "Andy Cui <ccui@hpe.com>",
