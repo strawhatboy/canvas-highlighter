@@ -17,6 +17,10 @@ var Consts = {
         RECT_DISACTIVED: 'RECT_DISACTIVED',
         RECT_SELECTED: 'RECT_SELECTED',
         RECT_UNSELECTED: 'RECT_UNSELECTED'
+    },
+
+    Strings: {
+        ID: 'uuid'
     }
 };
 
@@ -2764,6 +2768,31 @@ function isStrictComparable(value) {
  * // => false
  */
 
+/** `Object#toString` result references. */
+var stringTag$4 = '[object String]';
+
+/**
+ * Checks if `value` is classified as a `String` primitive or object.
+ *
+ * @static
+ * @since 0.1.0
+ * @memberOf _
+ * @category Lang
+ * @param {*} value The value to check.
+ * @returns {boolean} Returns `true` if `value` is a string, else `false`.
+ * @example
+ *
+ * _.isString('abc');
+ * // => true
+ *
+ * _.isString(1);
+ * // => false
+ */
+function isString(value) {
+  return typeof value == 'string' ||
+    (!isArray(value) && isObjectLike(value) && baseGetTag(value) == stringTag$4);
+}
+
 /**
  * Checks if `value` is `undefined`.
  *
@@ -3146,6 +3175,7 @@ var CanvasHighlighter = function (_EventEmitter) {
             _this.selectedClass = options.selectedClass || Consts.ClassNames.RECT_SELECTED;
             _this.frameSize = options.frameSize;
             _this.startingZIndex = options.startingZIndex || 2000;
+            _this.idPropertyName = options.idPropertyName || Consts.Strings.ID;
         }
 
         // init
@@ -3229,6 +3259,7 @@ var CanvasHighlighter = function (_EventEmitter) {
             this.selectedRect = {};
             this.selectedRealRect = {};
             this.q = [];
+            this.rectsMap = {};
         }
     }, {
         key: '_createRectOnMaskLayer',
@@ -3254,6 +3285,7 @@ var CanvasHighlighter = function (_EventEmitter) {
             realRect.width = rect.width == undefined ? undefined : rect.width * layerSize.width / frameSize.width;
 
             realRect.height = rect.height == undefined ? undefined : rect.height * layerSize.height / frameSize.height;
+
             //}
             var rectEl = document.createElement('div');
             var styleStr = 'position:absolute;';
@@ -3279,38 +3311,102 @@ var CanvasHighlighter = function (_EventEmitter) {
             rectEl.setAttribute('style', styleStr);
             rectEl.setAttribute('class', this.standByClass);
             rectEl.addEventListener('mouseover', function () {
-                if (_this2.selectedRect != rectEl) {
-                    rectEl.setAttribute('class', _this2.activedClass);
-                }
-                _this2.emit(Consts.Events.RECT_ACTIVED, realRect);
+                _this2._highlight(rectEl, realRect);
             });
             rectEl.addEventListener('mouseout', function () {
-                if (_this2.selectedRect != rectEl) {
-                    rectEl.setAttribute('class', _this2.standByClass);
-                }
-                _this2.emit(Consts.Events.RECT_DISACTIVED, realRect);
+                _this2._unhighlight(rectEl, realRect);
             });
             rectEl.addEventListener('click', function () {
-                if (_this2.selectedRect != rectEl) {
-                    if (isFunction(_this2.selectedRect.setAttribute)) {
-                        // unselect previous one
-                        _this2.selectedRect.setAttribute('class', _this2.standByClass);
-                        _this2.emit(Consts.Events.RECT_UNSELECTED, _this2.selectedRealRect);
-                    }
-                    _this2.selectedRect = rectEl;
-                    _this2.selectedRealRect = realRect;
-                    rectEl.setAttribute('class', _this2.selectedClass);
-                    _this2.emit(Consts.Events.RECT_SELECTED, realRect);
+                if (_this2.selectedRect == rectEl) {
+                    _this2._unselect(_this2.selectedRect, _this2.selectedRealRect);
                 } else {
-                    // unselect it
-                    _this2.selectedRect = {};
-                    rectEl.setAttribute('class', _this2.standByClass);
-                    _this2.emit(Consts.Events.RECT_UNSELECTED, realRect);
+                    _this2._unselect(_this2.selectedRect, _this2.selectedRealRect);
+                    _this2._select(rectEl, realRect);
                 }
             });
 
             this.container.appendChild(rectEl);
             this.rects.push(rectEl);
+
+            var id_key = realRect[this.idPropertyName];
+            if (isString(id_key)) {
+                this.rectsMap[id_key] = { el: rectEl, data: realRect };
+            }
+        }
+    }, {
+        key: 'select',
+        value: function select(id_key, isSilent) {
+            if (isString(id_key) && isObject(this.rectsMap[id_key])) {
+                this._select(this.rectsMap[id_key].el, this.rectsMap[id_key].data, isSilent);
+            }
+        }
+    }, {
+        key: 'unselect',
+        value: function unselect(id_key, isSilent) {
+            if (isString(id_key) && isObject(this.rectsMap[id_key])) {
+                this._unselect(this.rectsMap[id_key].el, this.rectsMap[id_key].data, isSilent);
+            }
+        }
+    }, {
+        key: '_select',
+        value: function _select(el, data, isSilent) {
+            if (this.selectedRect != el) {
+                this.selectedRect = el;
+                this.selectedRealRect = data;
+                el.setAttribute('class', this.selectedClass);
+                if (!isSilent) {
+                    this.emit(Consts.Events.RECT_SELECTED, data);
+                }
+            }
+        }
+    }, {
+        key: '_unselect',
+        value: function _unselect(el, data, isSilent) {
+            if (this.selectedRect == el) {
+                // unselect it
+                if (isFunction(this.selectedRect.setAttribute)) {
+                    this.selectedRect.setAttribute('class', this.standByClass);
+                    if (!isSilent) {
+                        this.emit(Consts.Events.RECT_UNSELECTED, this.selectedRealRect);
+                    }
+                    this.selectedRealRect = {};
+                    this.selectedRect = {};
+                }
+            }
+        }
+    }, {
+        key: 'highlight',
+        value: function highlight(id_key, isSilent) {
+            if (isString(id_key) && isObject(this.rectsMap[id_key])) {
+                this._highlight(this.rectsMap[id_key].el, this.rectsMap[id_key].data, isSilent);
+            }
+        }
+    }, {
+        key: 'unhighlight',
+        value: function unhighlight(id_key, isSilent) {
+            if (isString(id_key) && isObject(this.rectsMap[id_key])) {
+                this._unhighlight(this.rectsMap[id_key].el, this.rectsMap[id_key].data, isSilent);
+            }
+        }
+    }, {
+        key: '_highlight',
+        value: function _highlight(el, data, isSilent) {
+            if (this.selectedRect != el) {
+                el.setAttribute('class', this.activedClass);
+            }
+            if (!isSilent) {
+                this.emit(Consts.Events.RECT_ACTIVED, data);
+            }
+        }
+    }, {
+        key: '_unhighlight',
+        value: function _unhighlight(el, data, isSilent) {
+            if (this.selectedRect != el) {
+                el.setAttribute('class', this.standByClass);
+            }
+            if (!isSilent) {
+                this.emit(Consts.Events.RECT_DISACTIVED, data);
+            }
         }
     }]);
 

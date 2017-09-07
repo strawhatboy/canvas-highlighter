@@ -13,5 +13,9 @@ export let Consts = {
         RECT_DISACTIVED: 'RECT_DISACTIVED',
         RECT_SELECTED: 'RECT_SELECTED',
         RECT_UNSELECTED: 'RECT_UNSELECTED'
+    },
+
+    Strings: {
+        ID: 'uuid'
     }
 }

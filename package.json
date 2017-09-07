@@ -29,6 +29,7 @@
     "prepublish": "npm run test && uglifyjs -b beautify=false,preamble=\"'$(preamble)'\" build/canvas-highlighter.js -c negate_iife=false -m -o build/canvas-highlighter.min.js"
   },
   "dependencies": {
-    "lodash-es": "^4.17.4"
+    "lodash-es": "^4.17.4",
+    "uuid": "^3.1.0"
   }
 }
